@@ -466,8 +466,11 @@ defineExpose({
 
 <template>
   <div :id="id" ref="root" class="vue-pdf-embed">
-    <div v-for="(pageNum, i) in pageNums" :key="pageNum"
-    :ref="el => pageRefs.value[pageNum] = el instanceof HTMLElement ? el : null">
+    <div
+      v-for="(pageNum, i) in pageNums"
+      :key="pageNum"
+      :ref="el => (pageRefs.value[pageNum] = el instanceof HTMLElement ? el : null)"
+    >
       <slot name="before-page" :page="pageNum" />
 
       <div
@@ -480,11 +483,9 @@ defineExpose({
       >
         <canvas @click="onCanvasClick(pageNum, $event)" />
 
-        <!-- Add the on-page slot here -->
         <slot name="on-page" :page="pageNum" />
 
         <div v-if="textLayer" class="textLayer" />
-
         <div v-if="annotationLayer" class="annotationLayer" />
       </div>
 
