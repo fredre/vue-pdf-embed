@@ -467,7 +467,7 @@ defineExpose({
 <template>
   <div :id="id" ref="root" class="vue-pdf-embed">
     <div v-for="(pageNum, i) in pageNums" :key="pageNum"
-    :ref="el => pageRefs[pageNum] = el">
+    :ref="el => pageRefs.value[pageNum] = el instanceof HTMLElement ? el : null">
       <slot name="before-page" :page="pageNum" />
 
       <div
