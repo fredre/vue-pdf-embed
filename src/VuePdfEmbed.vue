@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, shallowRef, toRef, watch } from 'vue'
-import { AnnotationLayer, TextLayer } from 'pdfjs-dist/legacy/build/pdf.mjs'
-import { PDFLinkService } from 'pdfjs-dist/web/pdf_viewer.mjs'
 import type {
   OnProgressParameters,
   PDFDocumentProxy,
   PDFPageProxy,
   PageViewport,
 } from 'pdfjs-dist'
+import { AnnotationLayer, TextLayer } from 'pdfjs-dist/legacy/build/pdf.mjs'
+import { PDFLinkService } from 'pdfjs-dist/web/pdf_viewer.mjs'
+import { computed, onBeforeUnmount, ref, shallowRef, toRef, watch } from 'vue'
 
+import { useVuePdfEmbed } from './composables'
 import type { PasswordRequestParams, Source } from './types'
 import {
   addPrintStyles,
@@ -17,7 +18,6 @@ import {
   emptyElement,
   releaseChildCanvases,
 } from './utils'
-import { useVuePdfEmbed } from './composables'
 
 const props = withDefaults(
   defineProps<{
@@ -81,11 +81,17 @@ const emit = defineEmits<{
   (e: 'progress', value: OnProgressParameters): void
   (e: 'rendered'): void
   (e: 'rendering-failed', value: Error): void
+  (e: 'pdfPageClicked', pageNum: number, event: MouseEvent): void 
 }>()
+
+function onCanvasClick(pageNum: number, event: MouseEvent) {
+  emit('pdfPageClicked', pageNum, event)
+}
 
 const pageNums = shallowRef<number[]>([])
 const pageScales = ref<number[]>([])
 const root = shallowRef<HTMLDivElement | null>(null)
+const pageRefs = ref<Record<number, HTMLElement | null>>({})
 
 let renderingController: { isAborted: boolean; promise: Promise<void> } | null =
   null
@@ -460,7 +466,8 @@ defineExpose({
 
 <template>
   <div :id="id" ref="root" class="vue-pdf-embed">
-    <div v-for="(pageNum, i) in pageNums" :key="pageNum">
+    <div v-for="(pageNum, i) in pageNums" :key="pageNum"
+    :ref="el => pageRefs[pageNum] = el">
       <slot name="before-page" :page="pageNum" />
 
       <div
@@ -471,7 +478,10 @@ defineExpose({
           position: 'relative',
         }"
       >
-        <canvas />
+        <canvas @click="onCanvasClick(pageNum, $event)" />
+
+        <!-- Add the on-page slot here -->
+        <slot name="on-page" :page="pageNum" />
 
         <div v-if="textLayer" class="textLayer" />
 
