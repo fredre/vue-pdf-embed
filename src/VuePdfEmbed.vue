@@ -91,7 +91,7 @@ function onCanvasClick(pageNum: number, event: MouseEvent) {
 const pageNums = shallowRef<number[]>([])
 const pageScales = ref<number[]>([])
 const root = shallowRef<HTMLDivElement | null>(null)
-const pageRefs = ref<Record<number, HTMLElement | null>>({})
+
 
 let renderingController: { isAborted: boolean; promise: Promise<void> } | null =
   null
@@ -462,6 +462,10 @@ defineExpose({
   download,
   print,
 })
+
+function asHTMLElement(el: unknown): HTMLElement | null {
+  return el instanceof HTMLElement ? el : null
+}
 </script>
 
 <template>
@@ -469,7 +473,7 @@ defineExpose({
     <div
       v-for="(pageNum, i) in pageNums"
       :key="pageNum"
-      :ref="el => (pageRefs.value[pageNum] = el instanceof HTMLElement ? el : null)"
+      
     >
       <slot name="before-page" :page="pageNum" />
 
